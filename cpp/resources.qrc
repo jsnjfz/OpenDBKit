@@ -1,0 +1,53 @@
+<RCC>
+    <qresource prefix="/">
+        <!-- Toolbar and Action Icons -->
+        <file>images/new.svg</file>
+        <file>images/open.svg</file>
+        <file>images/save.svg</file>
+        <file>images/run.svg</file>
+        <file>images/stop.svg</file>
+        <file>images/format.svg</file>
+
+        <!-- UI Control Icons -->
+        <file>images/close.svg</file>
+        <file>images/dropdown.svg</file>
+        <file>images/check.svg</file>
+        <file>images/branch-closed.svg</file>
+        <file>images/branch-open.svg</file>
+        <file>images/sort-up.svg</file>
+        <file>images/sort-down.svg</file>
+
+        <!-- Database Icons -->
+        <file>images/connection.svg</file>
+        <file>images/database.svg</file>
+        <file>images/table.svg</file>
+        <file>images/column.svg</file>
+        <file>images/keyword.svg</file>
+
+        <!-- Feature Icons -->
+        <file>images/query.svg</file>
+        <file>images/edit.svg</file>
+        <file>images/export.svg</file>
+        <file>images/import.svg</file>
+        <file>images/refresh.svg</file>
+        <file>images/fetch-first.svg</file>
+        <file>images/fetch-next.svg</file>
+        <file>images/fetch-all.svg</file>
+        <file>images/fetch-last.svg</file>
+        <file>images/fetch-first-disabled.svg</file>
+        <file>images/fetch-next-disabled.svg</file>
+        <file>images/fetch-all-disabled.svg</file>
+        <file>images/fetch-last-disabled.svg</file>
+        <file>images/history.svg</file>
+        <file>images/sync.svg</file>
+        <file>images/info.svg</file>
+        <file>images/add.svg</file>
+        <file>images/copy.svg</file>
+        <file>images/delete.svg</file>
+        <file>images/undo.svg</file>
+        <file>images/filter.svg</file>
+
+        <!-- Stylesheets -->
+        <file>qss/mainwindow.qss</file>
+    </qresource>
+</RCC>
