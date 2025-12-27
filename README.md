@@ -45,29 +45,18 @@ OpenDBKit 是一款以 **简单、快捷** 为目标的桌面数据库管理工�
 ### 先决条件
 
 - Windows 10。
-- [Qt 5.15.2](https://download.qt.io/archive/qt/5.15/5.15.2/) + MinGW 8.1（与脚本默认配置一致）。
+- [Qt 5.15.2] + MinGW 8.1（与脚本默认配置一致）。
 - 已安装 `mingw32-make`、`windeployqt`，并通过 `QTDIR\bin` 添加到 `PATH`。
 
-### 手动构建步骤
+### 手动构建打包步骤
 
-```powershell
-set QTDIR=C:\Qt\5.15.2\mingw81_64
-set PATH=%QTDIR%\bin;%PATH%
-cd %REPO%\build-mingw-release
-qmake ..\cpp\jookDB.pro -config release
-mingw32-make -j4
-windeployqt --release --compiler-runtime release\jookdb.exe
-```
-
-### 使用脚本打包
-
-1. 编辑 `pack_jookdb.bat` 中的 `QTDIR`。
-2. 双击或在 PowerShell 中执行脚本，产物会生成到 `dist\`。
-3. 将 `lib/ language/ img/` 以及 `jookdb.exe` 一并分发即可在目标机器运行。
+1. 进入QT的命令行环境MinGW。
+2. cd到项目路径，运行pack_opendbkit.bat脚本，即可生成build和dist目录。
+3. 进入dist目录，双击jookdb.exe即可在目标机器运行。
 
 ### 运行
 
-执行 `dist\jookdb.exe`（可加 `--style fusion`）启动应用，首次使用请在连接面板创建 MySQL/MariaDB 连接。
+执行 `dist\jookdb.exe`启动应用，首次使用请在连接面板创建 MySQL/MariaDB 连接。
 
 ## 未完成功能 / 路线图
 
