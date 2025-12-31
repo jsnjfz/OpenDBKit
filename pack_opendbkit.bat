@@ -4,6 +4,8 @@ REM OpenDBKit build + deploy script
 set SCRIPT_DIR=%~dp0
 set BUILD_DIR=%SCRIPT_DIR%build
 set DIST_DIR=%SCRIPT_DIR%dist
+set CONNECTIONS_BACKUP_FILE=%SCRIPT_DIR%connections.json.bak
+if exist "%CONNECTIONS_BACKUP_FILE%" del /f /q "%CONNECTIONS_BACKUP_FILE%" >nul
 
 if "%QTDIR%"=="" (
     set QTDIR=C:\Qt\5.15.2\mingw81_64
@@ -43,6 +45,9 @@ if not exist "%RELEASE_EXE%" (
 )
 
 if exist "%DIST_DIR%" (
+    if exist "%DIST_DIR%\connections.json" (
+        copy /y "%DIST_DIR%\connections.json" "%CONNECTIONS_BACKUP_FILE%" >nul
+    )
     echo [INFO] Cleaning %DIST_DIR%
     rmdir /s /q "%DIST_DIR%"
 )
@@ -126,13 +131,29 @@ if exist "%SCRIPT_DIR%language" (
     xcopy /y /e /q "%SCRIPT_DIR%language" "%DIST_DIR%\language\" >nul
 )
 if exist "%SCRIPT_DIR%img" (
-    echo [INFO] Copying img directory...
-    xcopy /y /e /q "%SCRIPT_DIR%img" "%DIST_DIR%\img\" >nul
+echo [INFO] Copying img directory...
+xcopy /y /e /q "%SCRIPT_DIR%img" "%DIST_DIR%\img\" >nul
 )
+
+call :restore_connections
 
 echo [INFO] OpenDBKit package ready at %DIST_DIR%
 echo [INFO] Run %DIST_DIR%\opendbkit.exe to test.
 goto :eof
 
 :error
+call :restore_connections
 echo [ERROR] Build failed, see log above.
+goto :eof
+
+:restore_connections
+if not exist "%CONNECTIONS_BACKUP_FILE%" (
+    goto :eof
+)
+if not exist "%DIST_DIR%" (
+    mkdir "%DIST_DIR%"
+)
+copy /y "%CONNECTIONS_BACKUP_FILE%" "%DIST_DIR%\connections.json" >nul
+del /f /q "%CONNECTIONS_BACKUP_FILE%" >nul
+echo [INFO] Preserved existing connections.json
+goto :eof
