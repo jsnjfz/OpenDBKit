@@ -108,10 +108,18 @@ void MyTreeWidget::handleDoubleClick(QTreeWidgetItem *item)
     switch(type){
     case ConnectionNode:
         connName = item->data(0, ConnectionRole).toString();
-        if(item->childCount() > 0){
-            dbName = item->child(0)->data(0, NameRole).toString();
+        if(connName.isEmpty()){
+            return;
         }
-        break;
+        if(item->childCount() > 0){
+            ensureTablesLoaded(item->child(0));
+        }
+        if(item->isExpanded()){
+            item->setExpanded(false);
+        }else{
+            item->setExpanded(true);
+        }
+        return;
     case DatabaseNode:
     {
         const QString connection = item->data(0, ConnectionRole).toString();

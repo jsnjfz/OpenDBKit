@@ -223,14 +223,14 @@ void MainWindow::about()
                                              "当前支持: MySQL<br/><br/>"
                                              "功能: SQL编辑器 • 数据浏览 • 表设计器<br/>"
                                              "导入导出 • 结构同步<br/><br/>"
-                                             "<a href='https://github.com/OpenDBKit/OpenDBKit'>GitHub</a> | GPLv3 License<br/>"
+                                             "<a href='https://github.com/jsnjfz/OpenDBKit'>GitHub</a> | GPLv3 License<br/>"
                                              "© 2025 OpenDBKit Contributors"),
                               QStringLiteral("<b>OpenDBKit</b> v%1<br/><br/>"
                                              "Open Source Cross-Platform Database Manager<br/><br/>"
                                              "Currently supports: MySQL<br/><br/>"
                                              "Features: SQL Editor • Data Browser • Table Designer<br/>"
                                              "Import/Export • Structure Sync<br/><br/>"
-                                             "<a href='https://github.com/OpenDBKit/OpenDBKit'>GitHub</a> | GPLv3 License<br/>"
+                                             "<a href='https://github.com/jsnjfz/OpenDBKit'>GitHub</a> | GPLv3 License<br/>"
                                              "© 2025 OpenDBKit Contributors")).arg(VERSION_STR));
 }
 
@@ -264,7 +264,6 @@ void MainWindow::createActions()
     newAct->setShortcut(QKeySequence::New);
     connect(newAct, &QAction::triggered, this, &MainWindow::newFile);
     fileMenu->addAction(newAct);
-    fileToolBar->addAction(newAct);
 
     openAct = new QAction(QIcon(QStringLiteral(":/images/open.svg")), QString(), this);
     openAct->setShortcut(QKeySequence::Open);
@@ -298,12 +297,13 @@ void MainWindow::createActions()
     connect(exitAct, &QAction::triggered, this, &QWidget::close);
     fileMenu->addAction(exitAct);
 
-    newConnAct = new QAction(this);
+    newConnAct = new QAction(QIcon(QStringLiteral(":/images/new.svg")), QString(), this);
     connect(newConnAct, &QAction::triggered, this, [this]() {
         ConnDialog dlg(this);
         dlg.exec();
     });
     connMenu->addAction(newConnAct);
+    fileToolBar->addAction(newConnAct);
 
     fontAct = new QAction(this);
     connect(fontAct, &QAction::triggered, this, &MainWindow::adjustInterfaceFont);
@@ -401,6 +401,7 @@ void MainWindow::updateActionTexts()
     }
     if(newConnAct){
         newConnAct->setText(trLang(QStringLiteral("新建 MySQL 连接"), QStringLiteral("New MySQL Connection")));
+        newConnAct->setToolTip(trLang(QStringLiteral("新建 MySQL 连接"), QStringLiteral("New MySQL Connection")));
     }
     if(fontAct){
         fontAct->setText(trLang(QStringLiteral("界面字体..."), QStringLiteral("Interface Font...")));
