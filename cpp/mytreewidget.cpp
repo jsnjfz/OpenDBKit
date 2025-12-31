@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
+#include <QCursor>
 #include <QVBoxLayout>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -205,6 +206,14 @@ void MyTreeWidget::showContextMenu(const QPoint &pos)
     if(!item){
         return;
     }
+    const auto execMenuAtCursor = [this, &pos](QMenu &menu) -> QAction * {
+        const QPoint cursorGlobal = QCursor::pos();
+        const QPoint localPos = mapFromGlobal(cursorGlobal);
+        const bool cursorInsideWidget = rect().contains(localPos);
+        const QPoint popupPos = cursorInsideWidget ? cursorGlobal
+                                                   : viewport()->mapToGlobal(pos);
+        return menu.exec(popupPos);
+    };
     const int nodeType = item->data(0, TypeRole).toInt();
     auto showComingSoon = [this](const QString &label) {
         QMessageBox::information(this,
@@ -233,7 +242,7 @@ void MyTreeWidget::showContextMenu(const QPoint &pos)
         menu.addSeparator();
         QAction *refreshConnAction = menu.addAction(trLang(QStringLiteral("刷新"),
                                                            QStringLiteral("Refresh")));
-        QAction *selected = menu.exec(viewport()->mapToGlobal(pos));
+        QAction *selected = execMenuAtCursor(menu);
         if(!selected){
             return;
         }
@@ -398,7 +407,7 @@ void MyTreeWidget::showContextMenu(const QPoint &pos)
         QAction *refreshAction = menu.addAction(trLang(QStringLiteral("刷新"),
                                                        QStringLiteral("Refresh")));
 
-        QAction *selected = menu.exec(viewport()->mapToGlobal(pos));
+        QAction *selected = execMenuAtCursor(menu);
         if(!selected){
             return;
         }
@@ -600,7 +609,7 @@ void MyTreeWidget::showContextMenu(const QPoint &pos)
     QAction *refreshAction = menu.addAction(trLang(QStringLiteral("刷新"),
                                                    QStringLiteral("Refresh")));
 
-    QAction *selected = menu.exec(viewport()->mapToGlobal(pos));
+    QAction *selected = execMenuAtCursor(menu);
     if(!selected){
         return;
     }
