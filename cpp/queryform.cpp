@@ -6,6 +6,7 @@
 #include <QCheckBox>
 #include <QDateTime>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFormLayout>
@@ -37,6 +38,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QSignalBlocker>
+#include <QSortFilterProxyModel>
 #include <QStyledItemDelegate>
 #include <QTextStream>
 #include <QUuid>
@@ -3323,10 +3325,16 @@ void QueryForm::showDataContextMenu(InspectPane *pane, const QPoint &pos)
         return;
     }
     const QPoint globalPos = table->viewport()->mapToGlobal(pos);
+    const QModelIndex viewIndex = table->indexAt(pos);
+    auto *proxyModel = qobject_cast<QSortFilterProxyModel*>(table->model());
+    const QModelIndex sourceIndex = (proxyModel && viewIndex.isValid())
+            ? proxyModel->mapToSource(viewIndex)
+            : viewIndex;
     QMenu menu(table);
     QAction *addAction = menu.addAction(tr("新增行"));
     QAction *duplicateAction = menu.addAction(tr("复制行"));
     QAction *deleteAction = menu.addAction(tr("删除行"));
+    QAction *setValueAction = menu.addAction(tr("设置值..."));
     menu.addSeparator();
     QAction *saveAction = menu.addAction(tr("保存更改"));
     QAction *discardAction = menu.addAction(tr("撤销更改"));
@@ -3336,6 +3344,7 @@ void QueryForm::showDataContextMenu(InspectPane *pane, const QPoint &pos)
     const bool hasSelection = !pane->resultForm->selectedSourceRows().isEmpty();
     duplicateAction->setEnabled(hasSelection);
     deleteAction->setEnabled(hasSelection);
+    setValueAction->setEnabled(sourceIndex.isValid());
     saveAction->setEnabled(pane->dataDirty);
     discardAction->setEnabled(pane->dataDirty);
 
@@ -3353,6 +3362,68 @@ void QueryForm::showDataContextMenu(InspectPane *pane, const QPoint &pos)
     }
     if(selected == deleteAction){
         deleteSelectedRows(pane);
+        return;
+    }
+    if(selected == setValueAction){
+        auto *model = pane->resultForm->sourceModel();
+        if(!model || !sourceIndex.isValid()){
+            return;
+        }
+        const int column = sourceIndex.column();
+        if(column < 0 || column >= model->columnCount()){
+            return;
+        }
+        const int sourceRow = sourceIndex.row();
+        QString currentText;
+        bool currentNull = false;
+        if(QStandardItem *item = model->item(sourceRow, column)){
+            currentText = item->text();
+            currentNull = item->data(Qt::UserRole + 3).toBool();
+        }
+        QDialog dialog(this);
+        dialog.setWindowTitle(tr("设置值"));
+        dialog.setModal(true);
+        dialog.resize(420, 220);
+        auto *dialogLayout = new QVBoxLayout(&dialog);
+        auto *label = new QLabel(tr("输入要应用到选中行当前列的值:"), &dialog);
+        label->setWordWrap(true);
+        auto *textEdit = new QPlainTextEdit(&dialog);
+        textEdit->setPlainText(currentText);
+        textEdit->setMinimumHeight(120);
+        auto *nullCheck = new QCheckBox(tr("设置为 NULL"), &dialog);
+        nullCheck->setChecked(currentNull);
+        textEdit->setEnabled(!currentNull);
+        connect(nullCheck, &QCheckBox::toggled, textEdit, &QPlainTextEdit::setDisabled);
+        auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+        connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+        connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+        dialogLayout->addWidget(label);
+        dialogLayout->addWidget(textEdit);
+        dialogLayout->addWidget(nullCheck);
+        dialogLayout->addWidget(buttonBox);
+        if(dialog.exec() != QDialog::Accepted){
+            return;
+        }
+        const bool setNull = nullCheck->isChecked();
+        const QString newValue = setNull ? QString() : textEdit->toPlainText();
+        QList<int> rows = pane->resultForm->selectedSourceRows();
+        if(rows.isEmpty()){
+            rows << sourceRow;
+        }
+        const bool originalBlock = pane->blockDataSignal;
+        for(int row : rows){
+            if(row < 0 || row >= model->rowCount()){
+                continue;
+            }
+            if(QStandardItem *item = model->item(row, column)){
+                pane->blockDataSignal = true;
+                item->setText(newValue);
+                item->setData(setNull, Qt::UserRole + 3);
+                pane->blockDataSignal = originalBlock;
+                handleDataRowChanged(pane, row);
+            }
+        }
+        pane->blockDataSignal = originalBlock;
         return;
     }
     if(selected == saveAction){
