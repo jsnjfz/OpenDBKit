@@ -2708,10 +2708,36 @@ void QueryForm::setupDataConnections(InspectPane *pane)
     if(auto *model = pane->resultForm->sourceModel()){
         connect(model, &QStandardItemModel::dataChanged, this,
                 [this, pane](const QModelIndex &topLeft, const QModelIndex &bottomRight) {
+            if(!pane || !pane->resultForm){
+                return;
+            }
             if(pane->blockDataSignal){
                 return;
             }
-            for(int row = topLeft.row(); row <= bottomRight.row(); ++row){
+            auto *srcModel = pane->resultForm->sourceModel();
+            if(!srcModel){
+                return;
+            }
+            const int rowCount = srcModel->rowCount();
+            const int columnCount = srcModel->columnCount();
+            if(rowCount <= 0 || columnCount <= 0){
+                return;
+            }
+            const int firstRow = qBound(0, topLeft.row(), rowCount - 1);
+            const int lastRow = qBound(firstRow, bottomRight.row(), rowCount - 1);
+            const int firstColumn = qBound(0, topLeft.column(), columnCount - 1);
+            const int lastColumn = qBound(firstColumn, bottomRight.column(), columnCount - 1);
+            for(int row = firstRow; row <= lastRow; ++row){
+                for(int column = firstColumn; column <= lastColumn; ++column){
+                    if(QStandardItem *item = srcModel->item(row, column)){
+                        const QString text = item->text();
+                        const bool wasNull = item->data(Qt::UserRole + 3).toBool();
+                        if(wasNull && !text.isEmpty()){
+                            const QSignalBlocker blocker(srcModel);
+                            item->setData(false, Qt::UserRole + 3);
+                        }
+                    }
+                }
                 handleDataRowChanged(pane, row);
             }
         }, Qt::UniqueConnection);
